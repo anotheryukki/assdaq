@@ -1,0 +1,531 @@
+<title>ASSDAQ</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --paper:      #f6f4ef;
+    --paper-2:    #efece4;
+    --ink:        #16180f;
+    --ink-soft:   rgba(22,24,15,0.62);
+    --ink-faint:  rgba(22,24,15,0.38);
+    --line:       rgba(22,24,15,0.14);
+    --surface:    #fffdf8;
+    --gain:       #206b45;
+    --gain-soft:  rgba(32,107,69,0.10);
+    --loss:       #9c3b32;
+    --shadow-1:   0 1px 2px rgba(32,50,20,0.06), 0 6px 16px -8px rgba(32,50,20,0.18);
+    --shadow-2:   0 2px 4px rgba(32,50,20,0.07), 0 16px 40px -12px rgba(32,50,20,0.24);
+  }
+
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  html,body{
+    margin:0;
+    padding:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+  }
+
+  body{ position:fixed; inset:0; }
+
+  .mono{ font-family:'IBM Plex Mono',ui-monospace,monospace; }
+
+  /* ---------- background video ---------- */
+
+  .video-stage{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    background:var(--paper);
+  }
+
+  .bg-video{
+    position:absolute;
+    top:50%;
+    left:50%;
+    min-width:100%;
+    min-height:100%;
+    width:auto;
+    height:auto;
+    transform:translate(-50%,-50%);
+    object-fit:cover;
+    object-position:center center;
+  }
+
+  .video-overlay{
+    position:absolute;
+    inset:0;
+    background:
+      radial-gradient(ellipse 70% 60% at 50% 50%, rgba(246,244,239,0.06) 0%, rgba(246,244,239,0.30) 62%, rgba(246,244,239,0.86) 100%),
+      rgba(255,253,249,0.34);
+  }
+
+  .grain{
+    position:absolute;
+    inset:0;
+    opacity:0.05;
+    mix-blend-mode:multiply;
+    pointer-events:none;
+  }
+
+  /* ---------- page chrome ---------- */
+
+  .stage{
+    position:fixed;
+    inset:0;
+    z-index:2;
+  }
+
+  .top-zone{
+    position:absolute;
+    top:0;
+    left:0;
+    right:0;
+  }
+
+  /* ticker tape */
+
+  .tape{
+    width:100%;
+    border-bottom:1px solid var(--line);
+    background:rgba(255,253,248,0.72);
+    backdrop-filter:blur(6px) saturate(1.1);
+    overflow:hidden;
+    white-space:nowrap;
+    padding:9px 0;
+  }
+
+  .tape-track{
+    display:inline-flex;
+    align-items:center;
+    animation:scroll-tape 34s linear infinite;
+    will-change:transform;
+  }
+
+  .tape-item{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-size:12.5px;
+    letter-spacing:0.02em;
+    padding:0 22px;
+    color:var(--ink-soft);
+    border-right:1px solid var(--line);
+  }
+
+  .tape-item b{ color:var(--ink); font-weight:600; }
+  .tape-item.up{ color:var(--gain); }
+  .tape-item.down{ color:var(--loss); }
+
+  @keyframes scroll-tape{
+    from{ transform:translateX(0); }
+    to{ transform:translateX(-50%); }
+  }
+
+  /* header */
+
+  .header-row{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    padding:28px clamp(18px,4vw,48px) 0;
+  }
+
+  .wordmark{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-style:italic;
+    font-size:clamp(28px,4vw,40px);
+    letter-spacing:-0.03em;
+    line-height:1;
+    color:var(--ink);
+  }
+
+  .tagline{
+    margin-top:6px;
+    font-size:10.5px;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+  }
+
+  .quote-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px 16px;
+    box-shadow:var(--shadow-1);
+    text-align:right;
+    min-width:168px;
+  }
+
+  .quote-ticker{
+    font-size:11px;
+    letter-spacing:0.08em;
+    color:var(--ink-faint);
+    text-transform:uppercase;
+  }
+
+  .quote-price{
+    margin-top:4px;
+    font-size:19px;
+    font-weight:600;
+    color:var(--ink);
+    display:flex;
+    align-items:baseline;
+    justify-content:flex-end;
+    gap:8px;
+  }
+
+  .quote-delta{
+    font-size:12.5px;
+    color:var(--gain);
+    font-weight:500;
+  }
+
+  .quote-pair{
+    margin-top:6px;
+    font-size:10.5px;
+    letter-spacing:0.06em;
+    color:var(--ink-faint);
+  }
+
+  .quote-pair span{ color:var(--ink-soft); font-weight:500; }
+
+  /* footer */
+
+  .footer-col{
+    position:absolute;
+    bottom:0;
+    left:0;
+    right:0;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:14px;
+    padding:0 clamp(18px,4vw,48px) clamp(20px,3.6vh,36px);
+  }
+
+  .ca-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px 14px 14px 20px;
+    box-shadow:var(--shadow-2);
+    display:flex;
+    align-items:center;
+    gap:18px;
+    max-width:min(560px,92vw);
+  }
+
+  .ca-meta{
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+    min-width:0;
+  }
+
+  .ca-label{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    font-size:10.5px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+  }
+
+  .chain-dot{
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#9945ff,#14f195);
+  }
+
+  .ca-address{
+    font-size:13.5px;
+    color:var(--ink);
+    letter-spacing:0.01em;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+
+  .copy-btn{
+    flex:0 0 auto;
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    border-radius:9px;
+    padding:10px 16px;
+    font-family:'Inter',sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    letter-spacing:0.01em;
+    cursor:pointer;
+    transition:transform 0.18s cubic-bezier(0.34,1.56,0.64,1), background-color 0.18s ease, box-shadow 0.18s ease;
+    box-shadow:0 1px 2px rgba(22,24,15,0.2);
+  }
+
+  .copy-btn:hover{
+    background:#2a2d1d;
+    transform:translateY(-1px);
+  }
+
+  .copy-btn:active{
+    transform:translateY(0) scale(0.97);
+  }
+
+  .copy-btn:focus-visible{
+    outline:2px solid var(--gain);
+    outline-offset:2px;
+  }
+
+  .copy-btn.copied{
+    background:var(--gain);
+    color:#fff;
+  }
+
+  .copy-btn svg{ width:14px; height:14px; flex:0 0 auto; }
+
+  .disclaimer{
+    align-self:stretch;
+    max-width:640px;
+    text-align:left;
+    font-size:10px;
+    line-height:1.6;
+    color:var(--ink-faint);
+    letter-spacing:0.01em;
+  }
+
+  @media (max-width:640px){
+    .header-row{ flex-direction:column; gap:16px; }
+    .quote-card{ align-self:flex-start; text-align:left; }
+    .quote-price{ justify-content:flex-start; }
+    .ca-card{ flex-direction:column; align-items:stretch; gap:12px; padding:16px; max-width:100%; }
+    .copy-btn{ justify-content:center; }
+    .ca-address{ white-space:normal; word-break:break-all; }
+    .disclaimer{ text-align:left; }
+  }
+
+  /* ---------- loading screen ---------- */
+
+  .loader{
+    position:fixed;
+    inset:0;
+    z-index:10;
+    background:var(--paper);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:18px;
+    transition:opacity 0.6s ease, visibility 0.6s ease;
+  }
+
+  .loader.hidden{
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+  }
+
+  .loader-mark{
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    font-weight:600;
+    font-size:34px;
+    letter-spacing:-0.03em;
+    color:var(--ink);
+  }
+
+  .loader-bar{
+    width:180px;
+    height:2px;
+    background:var(--line);
+    border-radius:2px;
+    overflow:hidden;
+  }
+
+  .loader-bar-fill{
+    height:100%;
+    width:38%;
+    background:var(--gain);
+    border-radius:2px;
+    animation:loader-sweep 1.1s cubic-bezier(0.45,0,0.55,1) infinite;
+  }
+
+  .loader-status{
+    font-size:10.5px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+  }
+
+  @keyframes loader-sweep{
+    0%{ transform:translateX(-100%); }
+    100%{ transform:translateX(360%); }
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    .tape-track{ animation:none; }
+    .loader-bar-fill{ animation:none; width:100%; }
+    .copy-btn{ transition:none; }
+  }
+</style>
+
+<div class="loader" id="loader">
+  <div class="loader-mark">ASSDAQ</div>
+  <div class="loader-bar"><div class="loader-bar-fill"></div></div>
+  <div class="loader-status" id="loader-status">Loading market data&hellip;</div>
+</div>
+
+<div class="video-stage">
+  <video class="bg-video" id="bg-video" autoplay muted loop playsinline preload="auto">
+    <source src="hf_20260914_141105_33a95105-e14b-4bd6-8541-f358be06d2f0.mp4" type="video/mp4">
+  </video>
+  <div class="video-overlay"></div>
+  <svg class="grain" xmlns="http://www.w3.org/2000/svg">
+    <filter id="noise">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"></feTurbulence>
+      <feColorMatrix type="saturate" values="0"></feColorMatrix>
+    </filter>
+    <rect width="100%" height="100%" filter="url(#noise)"></rect>
+  </svg>
+</div>
+
+<div class="stage">
+  <div class="top-zone">
+    <div class="tape">
+      <div class="tape-track" id="tape-track"></div>
+    </div>
+
+    <div class="header-row">
+      <div>
+        <div class="wordmark">ASSDAQ</div>
+        <div class="tagline">The Exchange For Degenerates</div>
+      </div>
+      <div class="quote-card">
+        <div class="quote-ticker">$ASSDAQ &middot; SOL</div>
+        <div class="quote-price">
+          <span>ASS</span>
+          <span class="quote-delta">&#9650; 420.69%</span>
+        </div>
+        <div class="quote-pair">Paired with <span>$QQQx</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-col">
+    <div class="ca-card">
+      <div class="ca-meta">
+        <div class="ca-label"><span class="chain-dot"></span>Contract Address</div>
+        <div class="ca-address mono" id="ca-address">Aj7NxrpyZxYjtiX8DCAagMXT6rQMJtZD1JSrS35N5goF</div>
+      </div>
+      <button class="copy-btn" id="copy-btn" type="button" aria-label="Copy contract address">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+        <span id="copy-label">Copy</span>
+      </button>
+    </div>
+    <div class="disclaimer">
+      $ASSDAQ is a meme coin created purely for entertainment. It has no intrinsic value, no utility, and no expectation of financial return. Not financial advice. Nothing on this page is an offer to sell securities. DYOR and only risk what you can afford to lose.
+    </div>
+  </div>
+</div>
+
+<script>
+  // ticker tape content, duplicated for seamless loop
+  var items = [
+    { t: '$ASSDAQ', v: 'ASS/USD', d: '+420.69%', cls: 'up' },
+    { t: 'CA', v: 'Aj7Nxr&hellip;5goF', d: 'SOL', cls: '' },
+    { t: '$QQQx', v: 'PAIR', d: '+69.42%', cls: 'up' },
+    { t: 'VOL', v: '24H', d: '69,420,000', cls: '' },
+    { t: 'HOLDERS', v: 'ON-CHAIN', d: 'RISING', cls: 'up' },
+    { t: 'NASDAQ', v: 'FOR DEGENERATES', d: '', cls: '' },
+    { t: '$ASSDAQ', v: 'LIQUIDITY', d: 'LOCKED', cls: 'up' },
+    { t: 'MCAP', v: 'ATH', d: 'SOON&trade;', cls: 'down' }
+  ];
+
+  function renderTape(){
+    var html = items.map(function(i){
+      return '<span class="tape-item ' + i.cls + '"><b>' + i.t + '</b><span>' + i.v + '</span>' + (i.d ? '<span>' + i.d + '</span>' : '') + '</span>';
+    }).join('');
+    document.getElementById('tape-track').innerHTML = html + html;
+  }
+  renderTape();
+
+  // copy to clipboard
+  var btn = document.getElementById('copy-btn');
+  var label = document.getElementById('copy-label');
+  var address = document.getElementById('ca-address').textContent;
+
+  btn.addEventListener('click', function(){
+    var reset = function(){
+      btn.classList.remove('copied');
+      label.textContent = 'Copy';
+    };
+    var done = function(){
+      btn.classList.add('copied');
+      label.textContent = 'Copied';
+      setTimeout(reset, 1800);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(address).then(done, done);
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = address;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch(e) {}
+      document.body.removeChild(ta);
+      done();
+    }
+  });
+
+  // loading screen: wait for video + fonts
+  var loader = document.getElementById('loader');
+  var status = document.getElementById('loader-status');
+  var video = document.getElementById('bg-video');
+  var videoReady = false;
+  var fontsReady = false;
+  var minTimeElapsed = false;
+
+  function tryHide(){
+    if (videoReady && fontsReady && minTimeElapsed) {
+      loader.classList.add('hidden');
+    }
+  }
+
+  setTimeout(function(){ minTimeElapsed = true; tryHide(); }, 900);
+
+  if (video.readyState >= 3) {
+    videoReady = true;
+  } else {
+    video.addEventListener('canplaythrough', function(){ videoReady = true; tryHide(); }, { once:true });
+    video.addEventListener('loadeddata', function(){
+      setTimeout(function(){
+        if (!videoReady) { videoReady = true; tryHide(); }
+      }, 2500);
+    }, { once:true });
+  }
+
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function(){ fontsReady = true; tryHide(); });
+  } else {
+    fontsReady = true;
+  }
+
+  // hard fallback so the loader never blocks the page indefinitely
+  setTimeout(function(){
+    videoReady = true; fontsReady = true; minTimeElapsed = true; tryHide();
+  }, 6000);
+
+  status.textContent = 'Loading market data…';
+  tryHide();
+</script>
