@@ -137,6 +137,12 @@
     padding:28px clamp(18px,4vw,48px) 0;
   }
 
+  .brand-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+
   .wordmark{
     font-family:'Fraunces',serif;
     font-weight:600;
@@ -145,6 +151,39 @@
     letter-spacing:-0.03em;
     line-height:1;
     color:var(--ink);
+  }
+
+  .social-link{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:32px;
+    height:32px;
+    flex:0 0 auto;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:50%;
+    box-shadow:var(--shadow-1);
+    color:var(--ink);
+    text-decoration:none;
+    transition:transform 0.18s cubic-bezier(0.34,1.56,0.64,1), background-color 0.18s ease, color 0.18s ease;
+  }
+
+  .social-link svg{ width:14px; height:14px; }
+
+  .social-link:hover{
+    background:var(--ink);
+    color:var(--paper);
+    transform:translateY(-1px);
+  }
+
+  .social-link:active{
+    transform:translateY(0) scale(0.94);
+  }
+
+  .social-link:focus-visible{
+    outline:2px solid var(--gain);
+    outline-offset:2px;
   }
 
   .tagline{
@@ -379,6 +418,7 @@
     .tape-track{ animation:none; }
     .loader-bar-fill{ animation:none; width:100%; }
     .copy-btn{ transition:none; }
+    .social-link{ transition:none; }
   }
 </style>
 
@@ -410,7 +450,12 @@
 
     <div class="header-row">
       <div>
-        <div class="wordmark">ASSDAQ</div>
+        <div class="brand-row">
+          <div class="wordmark">ASSDAQ</div>
+          <a class="social-link" href="https://x.com/ass_stonk" target="_blank" rel="noopener noreferrer" aria-label="ASSDAQ on X">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.6 10.6 20.9 2h-2.1l-6.2 7.5L7.3 2H2l7.6 10.8L2 22h2.1l6.7-7.9 5.7 7.9H22l-8.4-11.4Zm-2.3 2.7-.8-1.1L4.4 3.6h2.6l5 6.9.8 1.1 6.5 9h-2.6l-5.4-7.3Z"></path></svg>
+          </a>
+        </div>
         <div class="tagline">The Exchange For Degenerates</div>
       </div>
       <div class="quote-card">
